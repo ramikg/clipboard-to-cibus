@@ -8,7 +8,7 @@ _Clipboard to Cibus_ is a userscript which fills it for you, using Bolt's output
 
 ## Installation
 
-0. Install a userscripts browser extension such as [Tampermonkey](https://www.tampermonkey.net/).
+0. Install a userscript manager such as [Tampermonkey](https://www.tampermonkey.net/).
 1. Install _Clipboard to Cibus_ by clicking [here](https://github.com/ramikg/clipboard-to-cibus/raw/main/clipboard-to-cibus.user.js).
 
 ## Usage
@@ -18,3 +18,13 @@ _Clipboard to Cibus_ is a userscript which fills it for you, using Bolt's output
 | ![Bolt output](resources/bolt_output.png) | ![Before Ctrl-V](resources/before_paste.png) | ![After Ctrl-V](resources/after_paste.png) |
 
 If the names don't match up, the userscript will ask you for assistance and remember your answer.
+
+## FAQ
+
+### How can I modify the stored mapping from names to cibus IDs?
+
+Use the built-in storage editor of your userscript manager.
+
+### Can I add names before/after pasting the clipboard output?
+
+No.

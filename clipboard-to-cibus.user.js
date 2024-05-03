@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.1
+// @version     0.0.2
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -23,6 +23,7 @@ const PAYMENT_OWNER_SPECIAL_VALUE = 'PAYMENT_OWNER';
 var friends = JSON.parse(document.forms[0].hfFriends.value);
 var total = 1 * $('h2 big').first().text()
 var before = $('.addFriend');
+var addable = $('#friendsList');
 var my_share = $('#splitList input');
 
 function recalcMyShare(e) {
@@ -34,10 +35,10 @@ function recalcMyShare(e) {
             shares.push({ user_id: id, price: p });
         }
     }
-    // if (t <= 0) {
-    //     if (e) e.preventDefault();
-    //     return false;
-    // }
+    if (t <= 0) {
+        if (e) e.preventDefault();
+        return false;
+    }
     my_share.val("₪" + Math.round(100 * t) / 100).css('text-align', $('#direction').val() == "ltr" ? "right" : "left");
     document.forms[0].hfSplitPay.value = JSON.stringify(shares);
     return true;
@@ -53,6 +54,41 @@ function addFriendId(friend, id) {
         )
     ).insertBefore(before);
 }
+
+function removeFriendId(friend, id) {
+    addable.append(
+      $('<label>').data('u', id).append(
+        $('<input name="addMe" type="checkbox" />'),
+        $('<span>').text(friend.Name)
+      )
+    );
+}
+
+function changeFriendPrice(e) {
+    var id = $(this).data('u');
+    console.log(`Changing price for ${id}`);
+    var prev = friends[id].price;
+    friends[id].price = 1 * this.value;
+    // even = false;
+    if (!recalcMyShare(e)) {
+        this.value = friends[id].price = prev;
+        return false;
+    }
+    return true;
+}
+
+function removeFriend() {
+    var id = $(this).data('u');
+    console.log(`Removing ${id}`);
+    $(this).closest('div').remove();
+    // --count;
+    delete friends[id].price;
+    // if (even) redistribute();
+    recalcMyShare();
+    removeFriendId(friends[id], id);
+    before.show();
+}
+
 /*  End of code from auth-split.js */
 
 function initCibusUsers() {
@@ -179,6 +215,10 @@ async function waitForBoltOutput() {
 
 (async () => {
     initCibusUsers();
+
+    // Allow removing friends and changing prices
+    $('#splitList').on('click', '.del', removeFriend).on('change', 'input', changeFriendPrice);
+
     const boltOutput = await waitForBoltOutput();
     const parsedBoltUsers = getParsedBoltUsers(boltOutput);
 
