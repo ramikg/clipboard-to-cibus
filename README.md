@@ -3,6 +3,9 @@
 Tired of manually filling the Cibus payments form at the end of a Wolt order?  
 _Clipboard to Cibus_ is a userscript which fills it for you, using Bolt's output as the source of information.
 
+> [!CAUTION]
+> Using this userscript may incur unexpected charges. Use at your own risk.
+
 ## Installation
 
 0. Install a userscripts browser extension such as [Tampermonkey](https://www.tampermonkey.net/).
