@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        clipboard-to-cibus
+// @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
 // @version     0.0.1
 // @author      Rami
@@ -12,6 +12,8 @@
 // @downloadURL https://github.com/ramikg/clipboard-to-cibus/raw/main/clipboard-to-cibus.user.js
 // @updateURL   https://github.com/ramikg/clipboard-to-cibus/raw/main/clipboard-to-cibus.user.js
 // ==/UserScript==
+
+'use strict';
 
 let cibusUsers;
 const userSuppliedIdPrefix = '__';
