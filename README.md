@@ -24,7 +24,3 @@ If the names don't match up, the userscript will ask you for assistance and reme
 ### How can I modify the stored mapping from names to cibus IDs?
 
 Use the built-in storage editor of your userscript manager.
-
-### Can I add names before/after pasting the clipboard output?
-
-No.

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.2
+// @version     0.0.3
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -55,6 +55,7 @@ function addFriendId(friend, id) {
     ).insertBefore(before);
 }
 
+// This function adds the friend to the non-participants list
 function removeFriendId(friend, id) {
     addable.append(
       $('<label>').data('u', id).append(
@@ -75,6 +76,21 @@ function changeFriendPrice(e) {
         return false;
     }
     return true;
+}
+
+function addFriend() {
+    var id = $(this).data('u'), f = friends[id];
+    console.log(`Adding ${id}`);
+    $(this).remove();
+    if (addable.children().length === 0) {
+        $('#cbFriendsList').prop('checked', false);
+        before.hide();
+    }
+    // ++count;
+    f.price = 0;
+    addFriendId(f, id);
+    // if (even) redistribute();
+    f.input.focus();
 }
 
 function removeFriend() {
@@ -218,6 +234,10 @@ async function waitForBoltOutput() {
 
     // Allow removing friends and changing prices
     $('#splitList').on('click', '.del', removeFriend).on('change', 'input', changeFriendPrice);
+    // Allow adding friends
+    addable.on('click', 'label', addFriend);
+    // Hide non-participants
+    $('#cbFriendsList').prop('checked', false);
 
     const boltOutput = await waitForBoltOutput();
     const parsedBoltUsers = getParsedBoltUsers(boltOutput);
@@ -243,6 +263,14 @@ async function waitForBoltOutput() {
         addFriendId(cibusUsers.get(cibusId), cibusId);
     }
     recalcMyShare();
+
+    // Re-populate the non-participants list
+    addable.empty();
+    for (const id in friends) {
+        if (!friends[id].price) {
+            removeFriendId(friends[id], id);
+        }
+    }
 
     // Show participants
     $('#cbSplit').prop('checked', true);
