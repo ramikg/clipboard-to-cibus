@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.3
+// @version     0.0.4
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -123,7 +123,7 @@ async function askUserToIdentifyName(nameOptions) {
     container.style.fontFamily = 'Arial, sans-serif';
 
     const description = document.createElement('p');
-    description.innerHTML = `Please help me locate ${formattedNameOptions} in the list below<br>(or choose to pay for them). I will remember your choice.`;
+    description.innerHTML = `Please help me locate <b>${formattedNameOptions}</b> in the list below<br>(or choose to pay for them). I will remember your choice.`;
     description.style.direction = 'ltr';
     description.style.textAlign = 'left';
     container.appendChild(description);

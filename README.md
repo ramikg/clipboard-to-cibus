@@ -24,3 +24,5 @@ If the names don't match up, the userscript will ask you for assistance and reme
 ### How can I modify the stored mapping from names to cibus IDs?
 
 Use the built-in storage editor of your userscript manager.
+
+In Tampermonkey, the userscript's _Storage_ tab appears only if Tampermonkey's config mode is set to _Advanced_ and the script has stored data.
