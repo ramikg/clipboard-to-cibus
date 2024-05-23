@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.4
+// @version     0.0.5
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -9,6 +9,7 @@
 // @require     https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js
 // @grant       GM.getValue
 // @grant       GM.setValue
+// @grant       GM.listValues
 // @downloadURL https://github.com/ramikg/clipboard-to-cibus/raw/main/clipboard-to-cibus.user.js
 // @updateURL   https://github.com/ramikg/clipboard-to-cibus/raw/main/clipboard-to-cibus.user.js
 // ==/UserScript==
@@ -108,7 +109,8 @@ function removeFriend() {
 /*  End of code from auth-split.js */
 
 function initCibusUsers() {
-    cibusUsers = new Map(Object.entries(friends));
+    const sortingFunction = ([id1, metadata1], [id2, metadata2]) => metadata1.Name?.localeCompare(metadata2.Name);
+    cibusUsers = new Map(Object.entries(friends).sort(sortingFunction));
 }
 
 async function askUserToIdentifyName(nameOptions) {
@@ -144,6 +146,12 @@ async function askUserToIdentifyName(nameOptions) {
     select.style.border = '1px solid #ccc';
     container.appendChild(select);
 
+    const placeholderOption = document.createElement('option');
+    placeholderOption.textContent = 'Please select a matching name';
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    select.appendChild(placeholderOption);
+
     cibusUsers.forEach((metadata, id) => {
         const option = document.createElement('option');
         option.value = id;
@@ -153,16 +161,37 @@ async function askUserToIdentifyName(nameOptions) {
 
     document.body.prepend(container);
 
-    return await new Promise(resolve => {
-        select.addEventListener('change', function () {
-            resolve(this.value);
+    async function getUserSuppliedNamesAssociatedWithCibusUserId(cibusUserId) {
+        const names = [];
+        const keys = await GM.listValues();
+        for (let key of keys) {
+            const value = await GM.getValue(key);
+            if (value === cibusUserId) {
+                names.push(key.replace(userSuppliedIdPrefix, ''));
+            }
+        }
+
+        return names;
+    }
+
+    async function handleUserAction(cibusUserId, name, resolve, container) {
+        const namesAssociatedWithCibusUserId = await getUserSuppliedNamesAssociatedWithCibusUserId(cibusUserId);
+        const cibusUserString = cibusUserId === PAYMENT_OWNER_SPECIAL_VALUE ? 'Your Cibus user' : `The Cibus user ${name}`;
+        const confirmationMessage = `Are you sure?\n${cibusUserString} is already associated with the following names: ${namesAssociatedWithCibusUserId.join(', ')}`;
+        if (!namesAssociatedWithCibusUserId.length || confirm(confirmationMessage)) {
+            resolve(cibusUserId);
             container.remove();
+        }
+    }
+
+    return await new Promise(async (resolve) => {
+        select.addEventListener('change', async () => {
+            if (select.selectedIndex !== 0) {
+                await handleUserAction(select.value, select.selectedOptions[0].textContent, resolve, container)
+            }
         });
 
-        paymentOwnerButton.addEventListener('click', () => {
-            resolve(PAYMENT_OWNER_SPECIAL_VALUE);
-            container.remove();
-        });
+        paymentOwnerButton.addEventListener('click', async () => await handleUserAction(PAYMENT_OWNER_SPECIAL_VALUE, '', resolve, container));
     });
 }
 
@@ -180,13 +209,16 @@ async function getCibusId(nameOptions) {
     }
 
     userSuppliedId = await askUserToIdentifyName(nameOptions);
-    await GM.setValue(userSuppliedIdPrefix + firstNameOption, userSuppliedId);
+    if (userSuppliedId) {
+        await GM.setValue(userSuppliedIdPrefix + firstNameOption, userSuppliedId);
+        return userSuppliedId;
+    }
 
-    return userSuppliedId;
+    throw new Error(`Failed getting cibus ID for name ${nameOptions}`);
 }
 
 function getParsedBoltUsers(boltOutput) {
-    const BOLT_OUTPUT_USER_REGEX = /(@(?<slackName>[\p{L}\p{M}*\s]+))?\(?(?<woltName>[\p{L}\p{M}*\s]+)\)?: (?<amount>\d+(\.\d+)?)/gmu;
+    const BOLT_OUTPUT_USER_REGEX = /(@(?<slackName>[\p{L}\p{M}*\s\w]+))?\(?(?<woltName>[\p{L}\p{M}*\s\w]+)\)?: (?<amount>\d+(\.\d+)?)/gmu;
     const rawRegexResult = boltOutput.matchAll(BOLT_OUTPUT_USER_REGEX);
 
     return Array.from(rawRegexResult).map(
