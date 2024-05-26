@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.5
+// @version     0.0.6
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -36,7 +36,7 @@ function recalcMyShare(e) {
             shares.push({ user_id: id, price: p });
         }
     }
-    if (t <= 0) {
+    if (t < 0) { // Originally "t <= 0", but this prevents the payment owner from not participating in the order
         if (e) e.preventDefault();
         return false;
     }
