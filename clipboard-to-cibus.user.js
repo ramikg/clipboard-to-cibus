@@ -284,8 +284,11 @@ async function waitForBoltOutput() {
         const cibusId = await getCibusId(parsedBoltUser.nameOptions);
         const cibusUser = cibusUsers.get(cibusId);
         if (cibusUser) {
+            console.log(`${parsedBoltUser.nameOptions} mapped to Cibus user ${JSON.stringify(cibusUser.Name)} (ID ${cibusId})`);
             cibusUser.price = (cibusUser.price ?? 0) + parsedBoltUser.amount;
             participatingCibusIds.add(cibusId);
+        } else {
+            console.log(`${parsedBoltUser.nameOptions} mapped to payment owner`);
         }
     }
 
