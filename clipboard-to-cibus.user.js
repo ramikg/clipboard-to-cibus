@@ -262,6 +262,9 @@ async function waitForBoltOutput() {
 }
 
 (async () => {
+    // Reset past attempts
+    document.forms[0].hfSplitPay.value = [];
+
     initCibusUsers();
 
     // Allow removing friends and changing prices
