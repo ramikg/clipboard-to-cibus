@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.6
+// @version     0.0.7
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -277,6 +277,18 @@ async function waitForBoltOutput() {
     const boltOutput = await waitForBoltOutput();
     const parsedBoltUsers = getParsedBoltUsers(boltOutput);
 
+    const clipboardTotalOutput = parsedBoltUsers.reduce((sum, currentUser) => sum + currentUser.amount, 0);
+    const clipboardTotalMinusCibusTotal = clipboardTotalOutput - total;
+    let extraAmountToAddToEachUser = 0;
+    if (clipboardTotalMinusCibusTotal > 0) {
+        alert(`The total clipboard amount is ${clipboardTotalMinusCibusTotal.toFixed(2)} higher than the required amount. Aborting.`);
+        return;
+    } else if (clipboardTotalMinusCibusTotal < 0) {
+        extraAmountToAddToEachUser = +(-clipboardTotalMinusCibusTotal / parsedBoltUsers.length).toFixed(2);
+        console.log(`Adding ${extraAmountToAddToEachUser} to each user`);
+        alert(`The total clipboard amount is ${-clipboardTotalMinusCibusTotal.toFixed(2)} lower than the required amount. The difference will be split equally.`);
+    }
+
     const participatingCibusIds = new Set();
 
     for (const parsedBoltUser of parsedBoltUsers) {
@@ -288,7 +300,7 @@ async function waitForBoltOutput() {
         const cibusUser = cibusUsers.get(cibusId);
         if (cibusUser) {
             console.log(`${parsedBoltUser.nameOptions} mapped to Cibus user ${JSON.stringify(cibusUser.Name)} (ID ${cibusId})`);
-            cibusUser.price = (cibusUser.price ?? 0) + parsedBoltUser.amount;
+            cibusUser.price = (cibusUser.price ?? 0) + parsedBoltUser.amount + extraAmountToAddToEachUser;
             participatingCibusIds.add(cibusId);
         } else {
             console.log(`${parsedBoltUser.nameOptions} mapped to payment owner`);
