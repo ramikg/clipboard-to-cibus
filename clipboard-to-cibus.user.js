@@ -19,6 +19,7 @@
 let cibusUsers;
 const userSuppliedIdPrefix = '__';
 const PAYMENT_OWNER_SPECIAL_VALUE = 'PAYMENT_OWNER';
+const TOTALS_DIFFERENCE_THRESHOLD = 0.1;
 
 /* Code from auth-split.js (comments are mine) */
 var friends = JSON.parse(document.forms[0].hfFriends.value);
@@ -280,10 +281,10 @@ async function waitForBoltOutput() {
     const clipboardTotalOutput = parsedBoltUsers.reduce((sum, currentUser) => sum + currentUser.amount, 0);
     const clipboardTotalMinusCibusTotal = clipboardTotalOutput - total;
     let extraAmountToAddToEachUser = 0;
-    if (clipboardTotalMinusCibusTotal > 0) {
+    if (clipboardTotalMinusCibusTotal > TOTALS_DIFFERENCE_THRESHOLD) {
         alert(`The total clipboard amount is ${clipboardTotalMinusCibusTotal.toFixed(2)} higher than the required amount. Aborting.`);
         return;
-    } else if (clipboardTotalMinusCibusTotal < 0) {
+    } else if (clipboardTotalMinusCibusTotal < -TOTALS_DIFFERENCE_THRESHOLD) {
         extraAmountToAddToEachUser = +(-clipboardTotalMinusCibusTotal / parsedBoltUsers.length).toFixed(2);
         console.log(`Adding ${extraAmountToAddToEachUser} to each user`);
         alert(`The total clipboard amount is ${-clipboardTotalMinusCibusTotal.toFixed(2)} lower than the required amount. The difference will be split equally.`);
