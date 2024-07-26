@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.7
+// @version     0.0.8
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -275,16 +275,23 @@ async function waitForBoltOutput() {
     // Hide non-participants
     $('#cbFriendsList').prop('checked', false);
 
-    const boltOutput = await waitForBoltOutput();
-    const parsedBoltUsers = getParsedBoltUsers(boltOutput);
+    let clipboardTotalMinusCibusTotal;
+    let parsedBoltUsers;
 
-    const clipboardTotalOutput = parsedBoltUsers.reduce((sum, currentUser) => sum + currentUser.amount, 0);
-    const clipboardTotalMinusCibusTotal = clipboardTotalOutput - total;
+    do {
+        const boltOutput = await waitForBoltOutput();
+        parsedBoltUsers = getParsedBoltUsers(boltOutput);
+
+        const clipboardTotalOutput = parsedBoltUsers.reduce((sum, currentUser) => sum + currentUser.amount, 0);
+        clipboardTotalMinusCibusTotal = clipboardTotalOutput - total;
+
+        if (clipboardTotalMinusCibusTotal > TOTALS_DIFFERENCE_THRESHOLD) {
+            alert(`The total clipboard amount is ${clipboardTotalMinusCibusTotal.toFixed(2)} greater than the required amount. Please try again.`);
+        }
+    } while (clipboardTotalMinusCibusTotal > TOTALS_DIFFERENCE_THRESHOLD);
+
     let extraAmountToAddToEachUser = 0;
-    if (clipboardTotalMinusCibusTotal > TOTALS_DIFFERENCE_THRESHOLD) {
-        alert(`The total clipboard amount is ${clipboardTotalMinusCibusTotal.toFixed(2)} higher than the required amount. Aborting.`);
-        return;
-    } else if (clipboardTotalMinusCibusTotal < -TOTALS_DIFFERENCE_THRESHOLD) {
+    if (clipboardTotalMinusCibusTotal < TOTALS_DIFFERENCE_THRESHOLD) {
         extraAmountToAddToEachUser = +(-clipboardTotalMinusCibusTotal / parsedBoltUsers.length).toFixed(2);
         console.log(`Adding ${extraAmountToAddToEachUser} to each user`);
         alert(`The total clipboard amount is ${-clipboardTotalMinusCibusTotal.toFixed(2)} lower than the required amount. The difference will be split equally.`);
