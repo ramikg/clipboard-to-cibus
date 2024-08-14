@@ -291,10 +291,11 @@ async function waitForBoltOutput() {
     } while (clipboardTotalMinusCibusTotal > TOTALS_DIFFERENCE_THRESHOLD);
 
     let extraAmountToAddToEachUser = 0;
-    if (clipboardTotalMinusCibusTotal < TOTALS_DIFFERENCE_THRESHOLD) {
-        extraAmountToAddToEachUser = +(-clipboardTotalMinusCibusTotal / parsedBoltUsers.length).toFixed(2);
+    const cibusTotalMinusClipboardTotal = -clipboardTotalMinusCibusTotal;
+    if (cibusTotalMinusClipboardTotal > TOTALS_DIFFERENCE_THRESHOLD) {
+        extraAmountToAddToEachUser = +(cibusTotalMinusClipboardTotal / parsedBoltUsers.length).toFixed(2);
         console.log(`Adding ${extraAmountToAddToEachUser} to each user`);
-        alert(`The total clipboard amount is ${-clipboardTotalMinusCibusTotal.toFixed(2)} lower than the required amount. The difference will be split equally.`);
+        alert(`The total clipboard amount is ${cibusTotalMinusClipboardTotal.toFixed(2)} lower than the required amount. The difference will be split equally.`);
     }
 
     const participatingCibusIds = new Set();
