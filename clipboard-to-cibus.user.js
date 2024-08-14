@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Clipboard to Cibus
 // @description Autofill Cibus payment information using clipboard data
-// @version     0.0.8
+// @version     0.0.9
 // @author      Rami
 // @namespace   https://github.com/ramikg
 // @icon        https://consumers.pluxee.co.il/favicon.ico
@@ -20,6 +20,8 @@ let cibusUsers;
 const userSuppliedIdPrefix = '__';
 const PAYMENT_OWNER_SPECIAL_VALUE = 'PAYMENT_OWNER';
 const TOTALS_DIFFERENCE_THRESHOLD = 0.1;
+
+const CONFIG_DID_USER_ACCEPT_WARNING = 'didUserAcceptWarning';
 
 /* Code from auth-split.js (comments are mine) */
 var friends = JSON.parse(document.forms[0].hfFriends.value);
@@ -263,6 +265,11 @@ async function waitForBoltOutput() {
 }
 
 (async () => {
+    if (!(await GM.getValue(CONFIG_DID_USER_ACCEPT_WARNING))) {
+        alert('By clicking OK, you are accepting that using this userscript may incur unexpected charges.');
+        await GM.setValue(CONFIG_DID_USER_ACCEPT_WARNING, true);
+    }
+
     // Reset past attempts
     document.forms[0].hfSplitPay.value = [];
 
